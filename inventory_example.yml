@@ -1,0 +1,10 @@
+[ollama_servers]
+server1 ansible_host=192.168.1.100
+[all:vars]
+ollama_url=http://localhost:11434
+ollama_port=11434
+webui_url=http://localhost:3000
+webui_port=3000
+webui_domain=your_domain
+ollama_domain=your domain
+certbot_email=your-email@domain.com
