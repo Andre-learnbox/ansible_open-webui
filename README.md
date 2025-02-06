@@ -5,7 +5,6 @@ Additional you need an inventory file like this
 
 [ollama_servers]
 server1 ansible_host=192.168.1.100
-
 [all:vars]
 ollama_url=http://localhost:11434
 ollama_port=11434
