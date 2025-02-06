@@ -1,0 +1,6 @@
+nvidia_driver_version: "550-server"
+nvidia_utils_version: "550-server"
+nvidia_container_toolkit_repo: "https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list"
+nvidia_gpg_key_url: "https://nvidia.github.io/libnvidia-container/gpgkey"
+nvidia_keyring_path: "/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg"
+nvidia_apt_list_path: "/etc/apt/sources.list.d/nvidia-container-toolkit.list"

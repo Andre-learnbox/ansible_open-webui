@@ -1,0 +1,53 @@
+- name: Install Nginx and Certbot
+  apt:
+    name:
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+
+- name: Configure Nginx for Web UI
+  template:
+    src: webui.conf.j2
+    dest: "/etc/nginx/sites-available/{{ webui_domain }}"
+    mode: '0644'
+
+- name: Configure Nginx for Ollama
+  template:
+    src: ollama.conf.j2
+    dest: "/etc/nginx/sites-available/{{ ollama_domain }}"
+    mode: '0644'
+
+- name: Enable sites
+  file:
+    src: "/etc/nginx/sites-available/{{ item }}"
+    dest: "/etc/nginx/sites-enabled/{{ item }}"
+    state: link
+  loop:
+    - "{{ webui_domain }}"
+    - "{{ ollama_domain }}"
+
+- name: Test Nginx configuration
+  command: nginx -t
+  changed_when: false
+
+- name: Obtain SSL certificates
+  command: >
+    certbot --nginx
+    -d {{ item }}
+    --non-interactive
+    --agree-tos
+    --email {{ certbot_email }}
+  loop:
+    - "{{ webui_domain }}"
+    - "{{ ollama_domain }}"
+
+- name: Create renewal script
+  copy:
+    dest: /etc/cron.weekly/certbot-renew
+    content: |
+      #!/bin/bash
+      certbot renew --quiet --no-self-upgrade
+      systemctl reload nginx
+    mode: '0755'

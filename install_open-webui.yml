@@ -1,0 +1,10 @@
+- name: Setup NVIDIA and Docker
+  hosts: ollama_servers
+  become: yes
+  roles:
+    - nvidia
+    - docker
+
+  post_tasks:
+    - name: Reboot system
+      reboot:

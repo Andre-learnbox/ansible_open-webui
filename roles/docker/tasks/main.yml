@@ -1,0 +1,92 @@
+# roles/docker/tasks/main.yml
+---
+- name: Remove old Docker packages
+  apt:
+    name:
+      - docker.io
+      - docker-doc
+      - docker-compose
+      - docker-compose-v2
+      - podman-docker
+      - containerd
+      - runc
+    state: absent
+
+- name: Install prerequisites
+  apt:
+    name:
+      - ca-certificates
+      - curl
+    state: present
+
+- name: Create keyrings directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    filename: docker
+    state: present
+
+- name: Install Docker packages
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+- name: Create Docker directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  with_items:
+    - /home/docker
+    - /home/eledia-docker
+
+- name: Stop Docker service
+  service:
+    name: docker
+    state: stopped
+
+- name: Configure Docker daemon
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "data-root": "/home/eledia-docker",
+        "ports": {
+          "{{ ollama_port }}": "{{ ollama_port }}",
+          "{{ webui_port }}": "{{ webui_port }}"
+        }
+      }
+    mode: '0644'
+
+- name: Move Docker data
+  synchronize:
+    src: /var/lib/docker/
+    dest: /home/eledia-docker
+    archive: yes
+
+- name: Clone Ollama Web UI
+  git:
+    repo: https://github.com/Andre-learnbox/ollama-open-webui.git
+    dest: /home/docker/ollama-open-webui
+
+- name: Restart Docker service
+  service:
+    name: docker
+    state: restarted
